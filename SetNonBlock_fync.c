@@ -16,7 +16,3 @@ int SetNonBlock(int fd) {
   return ioctl(fd, FIOBIO, &flags);
 #endif
 }
-
-int main() {
-  return 0;
-}
