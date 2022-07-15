@@ -53,6 +53,10 @@ int main() {
   // или новая ip = inet_pton(AF_INET, "10.0.0.1", &(address.sin_addr);
 
   // пытаемся соединиться и проверяем
+  // прототип connect(int sockfd, struct sockaddr *serv_addr, int addrlen);
+  // sockfd - сокет, который будет исползоваться для обмена данными с сервером;
+  // serv_addr - указатель на структуру с адресом сервера;
+  // addrlen - длина адреса.
   if (connect(Socket, (struct sockaddr *)(&SockAddr), sizeof(SockAddr)) < 0) {
     printf("connect_err");
     return -2;
@@ -60,6 +64,7 @@ int main() {
 
   // создаем буфер с данными
   char buffer[] = "BANG";
+
   // отправим серверу
   // прототип send(int sockfd, const void *msg, int len, int flags);
   // sockfd - сокет;
@@ -84,17 +89,17 @@ int main() {
   // распечатаем то, что получили
   printf(buffer);
 
-    // прототип int shutdown(int sockfd, int how);
-    // sockfd - сокет;
-    // how - флаг.
-    shutdown(Socket, SHUT_RDWR); // разрываем соединение - запрещаем передачу
+  // прототип int shutdown(int sockfd, int how);
+  // sockfd - сокет;
+  // how - флаг.
+  shutdown(Socket, SHUT_RDWR); // разрываем соединение - запрещаем передачу
                                  // данных, флаги:
                                  // SHUT_RD или 0 - запрещаем чтение из сокета;
                                  // SHUT_WR или 1 - запрещаем запись в сокет;
                                  // SHUT_RDWR или 2 - запрещаем и то и другое.
-    close(Socket); // закрываем сокет
-      // если закрыть сокет до разрыва соединения, то сокет закроется,
-      // а соединение НЕ разорвется!
+  close(Socket); // закрываем сокет
+                 // если закрыть сокет до разрыва соединения, то сокет закроется,
+                 // а соединение НЕ разорвется!
 
   return 0;
 }
