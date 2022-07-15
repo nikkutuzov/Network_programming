@@ -55,6 +55,11 @@ int main() {
     // чтобы указать конкретный ip-адрес используется ip = inet_addr("10.0.0.1");
     // или новая ip = inet_pton(AF_INET, "10.0.0.1", &(address.sin_addr);
 
+  // связываем сокет и адрес:
+  // прототип int bind(int sockfd, struct sockaddr *addr, int addrlen);
+  // sockfd - дискриптор сокета, который мы хотим привязать к заданному адресу;
+  // addr - указатель на структуру с адресом(см. выше);
+  // addrlen - размер этой структуры.
   if (bind(Socket, (struct sockaddr *)(&SockAddr), sizeof(SockAddr)) < 0) {
     printf("bind_err");
     return -2;
