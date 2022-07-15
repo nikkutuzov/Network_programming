@@ -6,7 +6,7 @@
 
 #include <sys/types.h> // для сокета
 #include <sys/socket.h> // для сокета
-#include <netinet/in.h> // для констант IPPROTO INADDR
+#include <netinet/in.h> // для констант IPPROTO_... INADDR_...
 #include <unistd.h> // для close();
 
 int main() {
