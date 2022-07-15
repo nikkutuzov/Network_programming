@@ -66,11 +66,25 @@ int main() {
   sendto(Socket, message_1, sizeof(message_1), 0,
          (struct sockaddr *)(&SockAddr), sizeof(SockAddr));
 
-  //
+  // пытаемся соединиться и проверяем
   connect(Socket, (struct sockaddr *)(&SockAddr), sizeof(SockAddr));
+  if (connect(Socket, (struct sockaddr *)(&SockAddr), sizeof(SockAddr)) < 0) {
+    printf("connect_err");
+    return -2;
+  }
 
-  // ???
+  // отправим серверу
+  // прототип send(int sockfd, const void *msg, int len, int flags);
+  // sockfd - сокет;
+  // msg - сообщение;
+  // len - длина сообщения;
+  // flags - флаги.
   send(Socket, message_2, sizeof(message_2), MSG_NOSIGNAL);
+        // MSG_OOB - предписывает отправить данные как срочные;
+        // MSG_DONTROUTE - запрещает маршрутизацию пакетов. "Нижележащие"
+        // транспортные слои могут проигнорировать этот флаг;
+        // MSG_NOSIGNAL - если соединение закрыто, не генерировать сигнал SIG_PIPE;
+        // если флаги не используются - 0.
 
   // закрываем сокет
   close(Socket);
