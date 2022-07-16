@@ -8,3 +8,5 @@ UDP_sender и UDP_receiver - простые примеры обмена datagram
 
 Epoll_server и KQueue_server - способы мультиплексирования:
 Epoll(linux) и Kqueue(FreeBSD и macOS);
+
+libev_server - простой эхо-сервер на libev'е(event_loop);
