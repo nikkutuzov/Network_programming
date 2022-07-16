@@ -55,6 +55,7 @@ int main() {
     // чтобы указать конкретный ip-адрес используется ip = inet_addr("10.0.0.1");
     // или новая ip = inet_pton(AF_INET, "10.0.0.1", &(address.sin_addr);
 
+  // ДЕМОНСТРАЦИЯ ОБЫЧНОГО СОКЕТА
   // прототип int sendto(int sockfd, const void *msg, int len, unsigned int flags,
   //                     const struct sockaddr *to, int tolen);
   // sockfd - сокет;
@@ -66,6 +67,16 @@ int main() {
   sendto(Socket, message_1, sizeof(message_1), 0,
          (struct sockaddr *)(&SockAddr), sizeof(SockAddr));
 
+  // ДЕМОНСТРАЦИЯ ПРИСОЕДИНЕННОГО СОКЕТА
+  // Некоторую путаницу вносят присоединённые датаграммные сокеты
+  // (connected datagram sockets). Дело в том, что для сокета с типом SOCK_DGRAM
+  // тоже можно вызвать функцию connect, а затем использовать send и recv для обмена
+  // данными. Нужно понимать, что никакого соединения при этом не устанавливается.
+  // Операционная система просто запоминает адрес, который вы передали функции
+  // connect, а затем использует его при отправке данных. Обратите внимание, что
+  // присоединённый сокет может получать данные только от сокета, с которым он
+  // соединён.
+  //
   // пытаемся соединиться и проверяем
   connect(Socket, (struct sockaddr *)(&SockAddr), sizeof(SockAddr));
   if (connect(Socket, (struct sockaddr *)(&SockAddr), sizeof(SockAddr)) < 0) {
