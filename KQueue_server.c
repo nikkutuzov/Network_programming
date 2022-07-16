@@ -48,7 +48,7 @@ int main() {
   int KQueue = kqueue();
 
   // создадим событие
-  struct kevent KEvent; // <--- может быть не один, а, например, 10 <---     
+  struct kevent KEvent; // <--- может быть не один, а, например, 10 <---
   bzero(&KEvent, sizeof(KEvent));                             //        |
                                                               //        |
   // заполним поля события с помощью макроса                            |
