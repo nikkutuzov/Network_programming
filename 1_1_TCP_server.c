@@ -145,7 +145,9 @@ int main() {
         // MSG_NOSIGNAL - если соединение закрыто, не генерировать сигнал SIG_PIPE;
         // если флаги не используются - 0.
 
-      // если говорят об ошибке
+
+/*    *** Хорошо бы сделать вот так: мы проверяем и ошибку и отсутствие данных
+      // ошибка
       if (recv_count == -1) {
         perror("recv_err!");
         exit(EXIT_FAILURE);
@@ -155,6 +157,10 @@ int main() {
         printf("SHUTDOWN FROM CLIENT");
         exit(EXIT_SUCCESS);
       }
+      *** но сделаем просто:
+*/
+
+      if(recv_count <= 0) { break; }
 
       // если все хорошо, отправим прочитанные (не всегда весь буфер) обратно
       // прототип send(int sockfd, const void *msg, int len, int flags);
