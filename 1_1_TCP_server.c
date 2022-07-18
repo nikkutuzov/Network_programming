@@ -31,7 +31,7 @@ int Socket(int domain, int type, int protocol) {
   // В качестве параметра сокет возвращает параметр типа int - дескриптор сокета:
   //    положительное число - сам дескриптор;
   //    -1 - ошибка.
-  int res = socket(domain, type, protocol);
+int res = socket(domain, type, protocol);
 
   // проверяем
   if (res == -1) { // если ошибка
