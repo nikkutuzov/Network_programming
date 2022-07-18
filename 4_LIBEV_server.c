@@ -135,6 +135,64 @@
 #include <netinet/in.h>
 #include <ev.h>
 
+void read_cb(struct ev_loop *loop, struct ev_io *watcher, int revents);
+void accept_cb(struct ev_loop *loop, struct ev_io *watcher, int revents);
+int Socket(int domain, int type, int protocol);
+void Bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+void Listen(int sockfd, int backlog);
+
+int main() {
+  struct ev_loop *loop = ev_default_loop(0);
+
+  int sd = Socket(AF_INET, SOCK_STREAM, 0);
+
+  struct sockaddr_in addr;
+  addr.sin_family = AF_INET;
+  addr.sin_port = htons(12345);
+  addr.sin_addr.s_addr = htonl(INADDR_ANY);
+
+  Bind(sd, (struct sockaddr *) &addr, sizeof addr);
+
+  Listen(sd, SOMAXCONN);
+
+  struct ev_io w_accept;
+  ev_io_init(&w_accept, accept_cb, sd, EV_READ);
+  ev_io_start(loop, &w_accept);
+
+  while (1) {
+    ev_loop(loop, 0);
+  }
+
+  return 0;
+}
+
+int Socket(int domain, int type, int protocol) {
+  int res = socket(domain, type, protocol);
+
+  if (res == -1) {
+    perror("socket_err!");
+    exit(EXIT_FAILURE);
+  }
+
+  return res;
+}
+
+void Bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
+  int res = bind(sockfd, addr, addrlen);
+  if (res == -1) {
+    perror("bind_err!");
+    exit(EXIT_FAILURE);
+  }
+}
+
+void Listen(int sockfd, int backlog) {
+  int res = listen(sockfd, backlog);
+  if (res == -1) {
+    perror("listen_err!");
+    exit(EXIT_FAILURE);;
+  }
+}
+
 void read_cb(struct ev_loop *loop, struct ev_io *watcher, int revents) {
   // создаем буфер
   char buffer[1024];
@@ -170,36 +228,4 @@ void accept_cb(struct ev_loop *loop, struct ev_io *watcher, int revents) {
   struct ev_io *w_client = (struct ev_io*) malloc(sizeof(struct ev_io));
   ev_io_init (w_client, read_cb, client_socket, EV_READ);
   ev_io_start(loop, w_client);
-}
-
-int main() {
-  struct ev_loop *loop = ev_default_loop(0);
-
-  int sd;
-  if ((sd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-    printf("socket_err!");
-    return -1;
-  }
-
-  struct sockaddr_in addr;
-  addr.sin_family = AF_INET;
-  addr.sin_port = htons(12345);
-  addr.sin_addr.s_addr = htonl(INADDR_ANY);
-
-  if (bind(sd, (struct sockaddr *)(&addr), sizeof(addr)) < 0) {
-    printf("bind_err!");
-    return -2;
-  }
-
-  listen(sd, SOMAXCONN);
-
-  struct ev_io w_accept;
-  ev_io_init(&w_accept, accept_cb, sd, EV_READ);
-  ev_io_start(loop, &w_accept);
-
-  while (1) {
-    ev_loop(loop, 0);
-  }
-
-  return 0;
 }
