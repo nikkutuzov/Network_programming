@@ -2,15 +2,21 @@
 /*                                  UDP_Sender                                    */
 /*<==============================================================================>*/
 #include <stdio.h>
-
+#include <stdlib.h>
 #include <sys/types.h> // для сокета
 #include <sys/socket.h> // для сокета
 #include <netinet/in.h> // для констант IPPROTO INADDR
 #include <unistd.h> // для close();
+#include <strings.h> // для bzero();
+#include <arpa/inet.h> // для IP
 
 // сообщения:
 char message_1[] = "Hello there!\n";
 char message_2[] = "Bye Bye!\n";
+
+int Socket(int domain, int type, int protocol);
+void Connect(int sockfd, struct sockaddr *addr, socklen_t addrlen);
+void Close(int fd);
 
 int main() {
   // создаем сокет:
@@ -33,17 +39,12 @@ int main() {
   // В качестве параметра сокет возвращает параметр типа int - дескриптор сокета:
   //    положительное число - сам дескриптор;
   //    -1 - ошибка.
-  int Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-
-  // проверяем
-  if (Socket < 0) {
-    printf("Socket_err!");
-    return -1;
-  }
+  int Sock = Socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
   // структура адрес
   struct sockaddr_in SockAddr;
-
+  // занулим (необязательно!)
+  bzero(&SockAddr, sizeof SockAddr);
   // заполним
   SockAddr.sin_family = AF_INET; // Internet-домен
   SockAddr.sin_port = htons(12345); // номер порта (htons - приводим
@@ -64,7 +65,7 @@ int main() {
   // flags - флаги;
   // to - адрес получателя;
   // tolen - длина адреса получателя.
-  sendto(Socket, message_1, sizeof(message_1), 0,
+  sendto(Sock, message_1, sizeof(message_1), 0,
          (struct sockaddr *)(&SockAddr), sizeof(SockAddr));
 
   // ДЕМОНСТРАЦИЯ ПРИСОЕДИНЕННОГО СОКЕТА
@@ -78,11 +79,7 @@ int main() {
   // соединён.
   //
   // пытаемся соединиться и проверяем
-  connect(Socket, (struct sockaddr *)(&SockAddr), sizeof(SockAddr));
-  if (connect(Socket, (struct sockaddr *)(&SockAddr), sizeof(SockAddr)) < 0) {
-    printf("connect_err");
-    return -2;
-  }
+  Connect(Sock, (struct sockaddr *)(&SockAddr), sizeof(SockAddr));
 
   // отправим серверу
   // прототип send(int sockfd, const void *msg, int len, int flags);
@@ -90,7 +87,7 @@ int main() {
   // msg - сообщение;
   // len - длина сообщения;
   // flags - флаги.
-  send(Socket, message_2, sizeof(message_2), MSG_NOSIGNAL);
+  send(Sock, message_2, sizeof(message_2), MSG_NOSIGNAL);
         // MSG_OOB - предписывает отправить данные как срочные;
         // MSG_DONTROUTE - запрещает маршрутизацию пакетов. "Нижележащие"
         // транспортные слои могут проигнорировать этот флаг;
@@ -98,7 +95,35 @@ int main() {
         // если флаги не используются - 0.
 
   // закрываем сокет
-  close(Socket);
+  Close(Sock);
 
   return 0;
+}
+
+int Socket(int domain, int type, int protocol) {
+  int res = socket(domain, type, protocol);
+
+  if (res == -1) {
+    perror("socket_err!");
+    exit(EXIT_FAILURE);
+  }
+
+  return res;
+}
+
+void Connect(int sockfd, struct sockaddr *addr, socklen_t addrlen) {
+  int res = connect(sockfd, addr, addrlen);
+
+  if (res == -1) {
+    perror("connect_err!");
+    exit(EXIT_FAILURE);
+  }
+}
+
+void Close(int fd) {
+  int res = close(fd);
+  if (res == -1) {
+    perror("close_err!");
+    exit(EXIT_FAILURE);
+  }
 }
