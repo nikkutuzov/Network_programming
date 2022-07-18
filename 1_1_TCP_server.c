@@ -11,77 +11,12 @@
 #include <strings.h> // для bzero();
 #include <arpa/inet.h> // для IP
 
-int Socket(int domain, int type, int protocol) {
-  // прототип int socket(int domain, int type, int protocol);
-  // domain:
-  //    Константа AF_INET - для Internet-домена (ip v.4);
-  //    Константа AF_INET6 - для Internet-домена (ip v.6);
-  //    Константа AF_UNIX - для передачи данных, используя файловую
-  //    систему ввода-вывода UNIX(исползуется для межпроцессного
-  //    взаимождействия на одном компьютере и не годятся для работы по сети).
-  // type:
-  //    SOCK_STREAM - для работы по протоколу TCP;
-  //    SOCK_DGRAM - для работы по протоколу UDP (датаграммы);
-  //    SOCK_RAW - для низкоуровневых("сырых") сокетов - IP, ICMP, etc.
-  // protocol:
-  //    0 - протокол по умолчанию, то есть для SOCK_STREAM - это будет TCP,
-  //    для SOCK_DGRAM - UDP, но можно исползовать и следующие константы:
-  //    IPPROTO_TCP и IPPROTO_UDP - то есть указать протокол явно.
-  //
-  // В качестве параметра сокет возвращает параметр типа int - дескриптор сокета:
-  //    положительное число - сам дескриптор;
-  //    -1 - ошибка.
-int res = socket(domain, type, protocol);
-
-  // проверяем
-  if (res == -1) { // если ошибка
-    perror("socket_err!"); // распечатываем не номер ошибки, а ее строковое значение
-    exit(EXIT_FAILURE); // и выходим в этом случае
-  }
-  // елси ошибки нет, возвращаем дескриптор сокета
-  return res;
-}
-
-void Bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
-  int res = bind(sockfd, addr, addrlen);
-  if (res == -1) {
-    perror("bind_err!");
-    exit(EXIT_FAILURE);
-  }
-}
-
-void Listen(int sockfd, int backlog) {
-  int res = listen(sockfd, backlog);
-  if (res == -1) {
-    perror("listen_err!");
-    exit(EXIT_FAILURE);;
-  }
-}
-
-int Accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen) {
-  int res = accept(sockfd, addr, addrlen);
-  if (res == -1) {
-    perror("accept_err!");
-    exit(EXIT_FAILURE);
-  }
-  return res;
-}
-
-void Shutdown(int sockfd, int how) {
-  int res = shutdown(sockfd, how);
-  if (res == -1) {
-    perror("shutdown_err!");
-    exit(EXIT_FAILURE);
-  }
-}
-
-void Close(int fd) {
-  int res = close(fd);
-  if (res == -1) {
-    perror("close_err!");
-    exit(EXIT_FAILURE);
-  }
-}
+int Socket(int domain, int type, int protocol);
+void Bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+void Listen(int sockfd, int backlog);
+int Accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+void Shutdown(int sockfd, int how);
+void Close(int fd);
 
 int main() {
   // создаем сокет:
@@ -190,4 +125,76 @@ int main() {
   }
 
   return 0;
+}
+
+int Socket(int domain, int type, int protocol) {
+  // прототип int socket(int domain, int type, int protocol);
+  // domain:
+  //    Константа AF_INET - для Internet-домена (ip v.4);
+  //    Константа AF_INET6 - для Internet-домена (ip v.6);
+  //    Константа AF_UNIX - для передачи данных, используя файловую
+  //    систему ввода-вывода UNIX(исползуется для межпроцессного
+  //    взаимождействия на одном компьютере и не годятся для работы по сети).
+  // type:
+  //    SOCK_STREAM - для работы по протоколу TCP;
+  //    SOCK_DGRAM - для работы по протоколу UDP (датаграммы);
+  //    SOCK_RAW - для низкоуровневых("сырых") сокетов - IP, ICMP, etc.
+  // protocol:
+  //    0 - протокол по умолчанию, то есть для SOCK_STREAM - это будет TCP,
+  //    для SOCK_DGRAM - UDP, но можно исползовать и следующие константы:
+  //    IPPROTO_TCP и IPPROTO_UDP - то есть указать протокол явно.
+  //
+  // В качестве параметра сокет возвращает параметр типа int - дескриптор сокета:
+  //    положительное число - сам дескриптор;
+  //    -1 - ошибка.
+int res = socket(domain, type, protocol);
+
+  // проверяем
+  if (res == -1) { // если ошибка
+    perror("socket_err!"); // распечатываем не номер ошибки, а ее строковое значение
+    exit(EXIT_FAILURE); // и выходим в этом случае
+  }
+  // елси ошибки нет, возвращаем дескриптор сокета
+  return res;
+}
+
+void Bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
+  int res = bind(sockfd, addr, addrlen);
+  if (res == -1) {
+    perror("bind_err!");
+    exit(EXIT_FAILURE);
+  }
+}
+
+void Listen(int sockfd, int backlog) {
+  int res = listen(sockfd, backlog);
+  if (res == -1) {
+    perror("listen_err!");
+    exit(EXIT_FAILURE);;
+  }
+}
+
+int Accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen) {
+  int res = accept(sockfd, addr, addrlen);
+  if (res == -1) {
+    perror("accept_err!");
+    exit(EXIT_FAILURE);
+  }
+  return res;
+}
+
+void Shutdown(int sockfd, int how) {
+  int res = shutdown(sockfd, how);
+  if (res == -1) {
+    perror("shutdown_err!");
+    exit(EXIT_FAILURE);
+  }
+}
+
+void Close(int fd) {
+  int res = close(fd);
+  if (res == -1) {
+    perror("close_err!");
+    exit(EXIT_FAILURE);
+  }
 }

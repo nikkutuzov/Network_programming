@@ -65,8 +65,8 @@ int main() {
   // flags - флаги;
   // to - адрес получателя;
   // tolen - длина адреса получателя.
-  sendto(Sock, message_1, sizeof(message_1), 0,
-         (struct sockaddr *)(&SockAddr), sizeof(SockAddr));
+  sendto(Sock, message_1, sizeof message_1 , 0,
+         (struct sockaddr *) &SockAddr, sizeof SockAddr);
 
   // ДЕМОНСТРАЦИЯ ПРИСОЕДИНЕННОГО СОКЕТА
   // Некоторую путаницу вносят присоединённые датаграммные сокеты
@@ -79,7 +79,7 @@ int main() {
   // соединён.
   //
   // пытаемся соединиться и проверяем
-  Connect(Sock, (struct sockaddr *)(&SockAddr), sizeof(SockAddr));
+  Connect(Sock, (struct sockaddr *) &SockAddr, sizeof SockAddr);
 
   // отправим серверу
   // прототип send(int sockfd, const void *msg, int len, int flags);
@@ -87,7 +87,7 @@ int main() {
   // msg - сообщение;
   // len - длина сообщения;
   // flags - флаги.
-  send(Sock, message_2, sizeof(message_2), MSG_NOSIGNAL);
+  send(Sock, message_2, sizeof message_2, MSG_NOSIGNAL);
         // MSG_OOB - предписывает отправить данные как срочные;
         // MSG_DONTROUTE - запрещает маршрутизацию пакетов. "Нижележащие"
         // транспортные слои могут проигнорировать этот флаг;

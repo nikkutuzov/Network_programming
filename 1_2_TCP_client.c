@@ -12,6 +12,44 @@
 #include <strings.h>
 #include <arpa/inet.h>
 
+int Socket(int domain, int type, int protocol);
+void Connect(int sockfd, struct sockaddr *addr, socklen_t addrlen);
+void Shutdown(int sockfd, int how);
+void Close(int fd);
+
+int main() {
+  int SlaveSocket = Socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+  struct sockaddr_in SockAddr;
+  bzero(&SockAddr, sizeof SockAddr);
+  SockAddr.sin_family = AF_INET;
+  SockAddr.sin_port = htons(12345);
+  SockAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+
+  Connect(SlaveSocket, (struct sockaddr *) &SockAddr, sizeof SockAddr);
+
+  // создаем буфер с данными
+  char buffer[] = "BANG";
+
+  // отправим серверу
+  send(SlaveSocket, buffer, 4, MSG_NOSIGNAL);
+
+  // получим обратно от сервера
+  // прототип recv(int sockfd, void *buf, int len, int flags);
+  // sockfd - сокет;
+  // buf - буфер для сообщения;
+  // len - длина сообщения;
+  // flags - флаги.
+  recv(SlaveSocket, buffer, 4, MSG_NOSIGNAL);
+
+  printf(buffer);
+
+  Shutdown(SlaveSocket, SHUT_RDWR);
+  Close(SlaveSocket);
+
+  return 0;
+}
+
 int Socket(int domain, int type, int protocol) {
   int res = socket(domain, type, protocol);
 
@@ -46,37 +84,4 @@ void Close(int fd) {
     perror("close_err!");
     exit(EXIT_FAILURE);
   }
-}
-
-int main() {
-  int SlaveSocket = Socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-
-  struct sockaddr_in SockAddr;
-  bzero(&SockAddr, sizeof SockAddr);
-  SockAddr.sin_family = AF_INET;
-  SockAddr.sin_port = htons(12345);
-  SockAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-
-  Connect(SlaveSocket, (struct sockaddr *) &SockAddr, sizeof SockAddr);
-
-  // создаем буфер с данными
-  char buffer[] = "BANG";
-
-  // отправим серверу
-  send(SlaveSocket, buffer, 4, MSG_NOSIGNAL);
-
-  // получим обратно от сервера
-  // прототип recv(int sockfd, void *buf, int len, int flags);
-  // sockfd - сокет;
-  // buf - буфер для сообщения;
-  // len - длина сообщения;
-  // flags - флаги.
-  recv(SlaveSocket, buffer, 4, MSG_NOSIGNAL);
-
-  printf(buffer);
-
-  Shutdown(SlaveSocket, SHUT_RDWR);
-  Close(SlaveSocket);
-
-  return 0;
 }

@@ -2,7 +2,7 @@
 /*                                  EPOLL_SERVER                                  */
 /*<==============================================================================>*/
 #include <stdio.h>
-
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -10,6 +10,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/epoll.h>
+#include <strings.h>
+#include <arpa/inet.h>
 
 #define MAX_EVENTS 32 // максимальное количество событий за раз
 
@@ -27,24 +29,28 @@ int SetNonBlock(int fd) {
 #endif
 }
 
+int Socket(int domain, int type, int protocol);
+void Bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+void Listen(int sockfd, int backlog);
+int Accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+void Shutdown(int sockfd, int how);
+void Close(int fd);
+
 int main() {
-  int MasterSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-  if (MasterSocket < 0) { printf("socket_err"); return -1; }
+  int MasterSocket = Socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
   struct sockaddr_in SockAddr;
+  bzero(&SockAddr, sizeof SockAddr);
   SockAddr.sin_family = AF_INET;
   SockAddr.sin_port = htons(12345);
   SockAddr.sin_addr.s_addr = htonl(INADDR_ANY);
 
-  if (bind(MasterSocket, (struct sockaddr *)(&SockAddr), sizeof(SockAddr)) < 0) {
-    printf("bind_err");
-    return -2;
-  }
+  Bind(MasterSocket, (struct sockaddr *) &SockAddr, sizeof SockAddr);
 
   // делаем MasterSocket неблокирующим
   SetNonBlock(MasterSocket);
 
-  listen(MasterSocket, SOMAXCONN);
+  Listen(MasterSocket, SOMAXCONN);
 
   // создаем дескриптор ePoll'а
   // прототип int epoll_create1(int flags);
@@ -103,8 +109,7 @@ int main() {
       // если у нас MasterSocket
       if (Events[i].data.fd == MasterSocket) {
         // делаем accept
-        int SlaveSocket = accept(MasterSocket, NULL, 0);
-        if (SlaveSocket < 0) { printf("accept_err"); return -3; }
+        int SlaveSocket = Accept(MasterSocket, NULL, 0);
 
         // делаем его неблокирующим
         SetNonBlock(SlaveSocket);
@@ -121,8 +126,8 @@ int main() {
         if ((recv_counter == 0) && (errno != EAGAIN)) { // если данных нет,
                                                         // но ресурс доступен
 
-          shutdown(Events[i].data.fd, SHUT_RDWR);
-          close(Events[i].data.fd);
+          Shutdown(Events[i].data.fd, SHUT_RDWR);
+          Close(Events[i].data.fd);
         } else if (recv_counter > 0) { //если прочитать данные удалось
           send(Events[i].data.fd, buffer, recv_counter, MSG_NOSIGNAL);
         }
@@ -131,4 +136,56 @@ int main() {
   }
 
   return 0;
+}
+
+int Socket(int domain, int type, int protocol) {
+  int res = socket(domain, type, protocol);
+
+  if (res == -1) {
+    perror("socket_err!");
+    exit(EXIT_FAILURE);
+  }
+
+  return res;
+}
+
+void Bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
+  int res = bind(sockfd, addr, addrlen);
+  if (res == -1) {
+    perror("bind_err!");
+    exit(EXIT_FAILURE);
+  }
+}
+
+void Listen(int sockfd, int backlog) {
+  int res = listen(sockfd, backlog);
+  if (res == -1) {
+    perror("listen_err!");
+    exit(EXIT_FAILURE);;
+  }
+}
+
+int Accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen) {
+  int res = accept(sockfd, addr, addrlen);
+  if (res == -1) {
+    perror("accept_err!");
+    exit(EXIT_FAILURE);
+  }
+  return res;
+}
+
+void Shutdown(int sockfd, int how) {
+  int res = shutdown(sockfd, how);
+  if (res == -1) {
+    perror("shutdown_err!");
+    exit(EXIT_FAILURE);
+  }
+}
+
+void Close(int fd) {
+  int res = close(fd);
+  if (res == -1) {
+    perror("close_err!");
+    exit(EXIT_FAILURE);
+  }
 }
