@@ -2,10 +2,15 @@
 /*                                 UDP_Receiver                                   */
 /*<==============================================================================>*/
 #include <stdio.h>
-
+#include <stdlib.h>
 #include <sys/types.h> // для сокета
 #include <sys/socket.h> // для сокета
 #include <netinet/in.h> // для констант IPPROTO INADDR
+#include <strings.h> // для bzero();
+#include <arpa/inet.h> // для IP
+
+int Socket(int domain, int type, int protocol);
+void Bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 
 int main() {
   // счетчик прочитанных данных
@@ -33,17 +38,12 @@ int main() {
   // В качестве параметра сокет возвращает параметр типа int - дескриптор сокета:
   //    положительное число - сам дескриптор;
   //    -1 - ошибка.
-  int Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-
-  // проверяем
-  if (Socket < 0) {
-    printf("Socket_err!");
-    return -1;
-  }
+  int Sock = Socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
   // структура адрес
   struct sockaddr_in SockAddr;
-
+  // занулим (необязательно!)
+  bzero(&SockAddr, sizeof SockAddr);
   // заполним
   SockAddr.sin_family = AF_INET; // Internet-домен
   SockAddr.sin_port = htons(12345); // номер порта (htons - приводим
@@ -60,10 +60,7 @@ int main() {
   // sockfd - дескриптор сокета, который мы хотим привязать к заданному адресу;
   // addr - указатель на структуру с адресом(см. выше);
   // addrlen - размер этой структуры.
-  if (bind(Socket, (struct sockaddr *)(&SockAddr), sizeof(SockAddr)) < 0) {
-    printf("bind_err");
-    return -2;
-  }
+  Bind(Sock, (struct sockaddr *) &SockAddr , sizeof SockAddr);
 
   while(1) {
     // прототип recvfrom(int sockfd, void *buf, int len, unsigned int flags,
@@ -74,7 +71,7 @@ int main() {
     // flags - флаги;
     // from - адрес отправителя;
     // fromlen - длина адреса отправителя.
-    recv_count = recvfrom(Socket, buffer, 1024, 0, NULL, NULL);
+    recv_count = recvfrom(Sock, buffer, 1024, 0, NULL, NULL);
 
     // установим в буфере конец полученного сообщения
     buffer[recv_count] = '\0';
@@ -84,4 +81,23 @@ int main() {
   }
 
   return 0;
+}
+
+int Socket(int domain, int type, int protocol) {
+  int res = socket(domain, type, protocol);
+
+  if (res == -1) {
+    perror("socket_err!");
+    exit(EXIT_FAILURE);
+  }
+
+  return res;
+}
+
+void Bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
+  int res = bind(sockfd, addr, addrlen);
+  if (res == -1) {
+    perror("bind_err!");
+    exit(EXIT_FAILURE);
+  }
 }
