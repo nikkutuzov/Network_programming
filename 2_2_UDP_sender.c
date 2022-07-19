@@ -16,7 +16,9 @@ char message_2[] = "Bye Bye!\n";
 
 int Socket(int domain, int type, int protocol);
 void Connect(int sockfd, struct sockaddr *addr, socklen_t addrlen);
-ssize_t Send(int sockfd, const void *buf, size_t len, int flags);
+void Send(int sockfd, const void *buf, size_t len, int flags);
+void Sendto(int sockfd, const void *buf, size_t len, int flags,
+            const struct sockaddr *dest_addr, socklen_t addrlen);
 void Close(int fd);
 
 int main() {
@@ -39,15 +41,7 @@ int main() {
     // или новая ip = inet_pton(AF_INET, "10.0.0.1", &(address.sin_addr);
 
   // ДЕМОНСТРАЦИЯ ОБЫЧНОГО СОКЕТА
-  // прототип int sendto(int sockfd, const void *msg, int len, unsigned int flags,
-  //                     const struct sockaddr *to, int tolen);
-  // sockfd - сокет;
-  // msg - что мы будем отправлять
-  // len - длина отправляемого сообщения;
-  // flags - флаги;
-  // to - адрес получателя;
-  // tolen - длина адреса получателя.
-  sendto(Sock, message_1, sizeof message_1 , 0,
+  Sendto(Sock, message_1, sizeof message_1 , 0,
          (struct sockaddr *) &SockAddr, sizeof SockAddr);
 
   // ДЕМОНСТРАЦИЯ ПРИСОЕДИНЕННОГО СОКЕТА
@@ -64,17 +58,7 @@ int main() {
   Connect(Sock, (struct sockaddr *) &SockAddr, sizeof SockAddr);
 
   // отправим серверу
-  // прототип send(int sockfd, const void *msg, int len, int flags);
-  // sockfd - сокет;
-  // msg - сообщение;
-  // len - длина сообщения;
-  // flags - флаги.
   Send(Sock, message_2, sizeof message_2, MSG_NOSIGNAL);
-        // MSG_OOB - предписывает отправить данные как срочные;
-        // MSG_DONTROUTE - запрещает маршрутизацию пакетов. "Нижележащие"
-        // транспортные слои могут проигнорировать этот флаг;
-        // MSG_NOSIGNAL - если соединение закрыто, не генерировать сигнал SIG_PIPE;
-        // если флаги не используются - 0.
 
   // закрываем сокет
   Close(Sock);
@@ -121,8 +105,8 @@ void Connect(int sockfd, struct sockaddr *addr, socklen_t addrlen) {
   }
 }
 
-ssize_t Send(int sockfd, const void *buf, size_t len, int flags) {
-  // прототип send(int sockfd, const void *msg, int len, int flags);
+void Send(int sockfd, const void *buf, size_t len, int flags) {
+  // прототип ssize_t send(int sockfd, const void *msg, int len, int flags);
   // sockfd - сокет;
   // msg - сообщение;
   // len - длина сообщения;
@@ -133,6 +117,25 @@ ssize_t Send(int sockfd, const void *buf, size_t len, int flags) {
         // транспортные слои могут проигнорировать этот флаг;
         // MSG_NOSIGNAL - если соединение закрыто, не генерировать сигнал SIG_PIPE;
         // если флаги не используются - 0.
+
+  if (res == -1) {
+    perror("send_err!");
+    exit(EXIT_FAILURE);
+  }
+}
+
+void Sendto(int sockfd, const void *buf, size_t len, int flags,
+                      const struct sockaddr *dest_addr, socklen_t addrlen) {
+  // прототип:
+  // ssize_t sendto(int sockfd, const void *msg, int len, unsigned int flags,
+  //                     const struct sockaddr *to, int tolen);
+  // sockfd - сокет;
+  // msg - что мы будем отправлять
+  // len - длина отправляемого сообщения;
+  // flags - флаги;
+  // to - адрес получателя;
+  // tolen - длина адреса получателя.
+  ssize_t res = sendto(sockfd, buf, len, flags, dest_addr, addrlen);
 
   if (res == -1) {
     perror("send_err!");

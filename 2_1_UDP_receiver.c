@@ -16,7 +16,7 @@ ssize_t Recvfrom(int sockfd, void *buf, size_t len, int flags,
 
 int main() {
   // счетчик прочитанных данных
-  int recv_count = 0;
+  ssize_t recv_count = 0;
   // буфер для данных
   char buffer[1024];
 
@@ -99,7 +99,7 @@ void Bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
 
 ssize_t Recvfrom(int sockfd, void *buf, size_t len, int flags,
                         struct sockaddr *src_addr, socklen_t *addrlen) {
-  // прототип recvfrom(int sockfd, void *buf, int len, unsigned int flags,
+  // прототип ssize_t recvfrom(int sockfd, void *buf, int len, unsigned int flags,
   //                   struct sockaddr *from, int *fromlen);
   // sockfd - сокет;
   // buf - буфер, куда поместим полученные данные;

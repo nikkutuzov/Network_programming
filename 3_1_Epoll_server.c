@@ -33,6 +33,7 @@ int Socket(int domain, int type, int protocol);
 void Bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 void Listen(int sockfd, int backlog);
 int Accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+void Send(int sockfd, const void *buf, size_t len, int flags);
 void Shutdown(int sockfd, int how);
 void Close(int fd);
 
@@ -129,7 +130,7 @@ int main() {
           Shutdown(Events[i].data.fd, SHUT_RDWR);
           Close(Events[i].data.fd);
         } else if (recv_counter > 0) { //если прочитать данные удалось
-          send(Events[i].data.fd, buffer, recv_counter, MSG_NOSIGNAL);
+          Send(Events[i].data.fd, buffer, recv_counter, MSG_NOSIGNAL);
         }
       }
     }
@@ -172,6 +173,25 @@ int Accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen) {
     exit(EXIT_FAILURE);
   }
   return res;
+}
+
+void Send(int sockfd, const void *buf, size_t len, int flags) {
+  // прототип ssize_t send(int sockfd, const void *msg, int len, int flags);
+  // sockfd - сокет;
+  // msg - сообщение;
+  // len - длина сообщения;
+  // flags - флаги.
+  ssize_t res = send(sockfd, buf, len, flags);
+        // MSG_OOB - предписывает отправить данные как срочные;
+        // MSG_DONTROUTE - запрещает маршрутизацию пакетов. "Нижележащие"
+        // транспортные слои могут проигнорировать этот флаг;
+        // MSG_NOSIGNAL - если соединение закрыто, не генерировать сигнал SIG_PIPE;
+        // если флаги не используются - 0.
+
+  if (res == -1) {
+    perror("send_err!");
+    exit(EXIT_FAILURE);
+  }
 }
 
 void Shutdown(int sockfd, int how) {

@@ -138,7 +138,7 @@
 int Socket(int domain, int type, int protocol);
 void Bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 void Listen(int sockfd, int backlog);
-ssize_t Send(int sockfd, const void *buf, size_t len, int flags);
+void Send(int sockfd, const void *buf, size_t len, int flags);
 ssize_t Recv(int sockfd, void *buf, size_t len, int flags);
 void read_cb(struct ev_loop *loop, struct ev_io *watcher, int revents);
 void accept_cb(struct ev_loop *loop, struct ev_io *watcher, int revents);
@@ -207,8 +207,8 @@ ssize_t Recv(int sockfd, void *buf, size_t len, int flags) {
   return res;
 }
 
-ssize_t Send(int sockfd, const void *buf, size_t len, int flags) {
-  // прототип send(int sockfd, const void *msg, int len, int flags);
+void Send(int sockfd, const void *buf, size_t len, int flags) {
+  // прототип ssize_tsend(int sockfd, const void *msg, int len, int flags);
   // sockfd - сокет;
   // msg - сообщение;
   // len - длина сообщения;
