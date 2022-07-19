@@ -65,34 +65,11 @@ int main() {
         // если флаги не используются - 0.
 
 
-/*    *** Хорошо бы сделать вот так: мы проверяем и ошибку и отсутствие данных
-      // ошибка
-      if (recv_count == -1) {
-        perror("recv_err!");
-        exit(EXIT_FAILURE);
-      }
-      // данных нет
-      if (recv_count == 0) {
-        printf("SHUTDOWN FROM CLIENT");
-        exit(EXIT_SUCCESS);
-      }
-      *** но сделаем просто:
-*/
-
-      if(recv_count <= 0) { break; }
+      if (recv_count == 0) { break; }
 
       // если все хорошо, отправим прочитанные (не всегда весь буфер) обратно
-      // прототип send(int sockfd, const void *msg, int len, int flags);
-      // sockfd - сокет;
-      // msg - сообщение;
-      // len - длина сообщения;
-      // flags - флаги.
       Send(SlaveSocket, buffer, recv_count, MSG_NOSIGNAL);
-      // MSG_OOB - предписывает отправить данные как срочные;
-      // MSG_DONTROUTE - запрещает маршрутизацию пакетов. "Нижележащие"
-      // транспортные слои могут проигнорировать этот флаг;
-      // MSG_NOSIGNAL - если соединение закрыто, не генерировать сигнал SIG_PIPE;
-      // если флаги не используются - 0.
+      // флаги аналогичны recv.
     }
 
     Shutdown(SlaveSocket, SHUT_RDWR); // разрываем соединение - запрещаем передачу
