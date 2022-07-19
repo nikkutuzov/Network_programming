@@ -96,7 +96,7 @@ ssize_t Recv(int sockfd, void *buf, size_t len, int flags) {
   ssize_t res = recv(sockfd, buf, len, flags);
 
   if (res == -1) {
-    perror("socket_err!");
+    perror("recv_err!");
     exit(EXIT_FAILURE);
   }
 

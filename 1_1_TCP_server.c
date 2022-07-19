@@ -15,6 +15,8 @@ int Socket(int domain, int type, int protocol);
 void Bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 void Listen(int sockfd, int backlog);
 int Accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+ssize_t Send(int sockfd, const void *buf, size_t len, int flags);
+ssize_t Recv(int sockfd, void *buf, size_t len, int flags);
 void Shutdown(int sockfd, int how);
 void Close(int fd);
 
@@ -55,7 +57,7 @@ int main() {
       char buffer[1024]; // создадим буфер
 
       // в него прочитаем переданные серверу данные
-      ssize_t recv_count = recv(SlaveSocket, buffer, 1024, MSG_NOSIGNAL);
+      ssize_t recv_count = Recv(SlaveSocket, buffer, 1024, MSG_NOSIGNAL);
         // MSG_OOB - предписывает отправить данные как срочные;
         // MSG_DONTROUTE - запрещает маршрутизацию пакетов. "Нижележащие"
         // транспортные слои могут проигнорировать этот флаг;
@@ -85,7 +87,7 @@ int main() {
       // msg - сообщение;
       // len - длина сообщения;
       // flags - флаги.
-      send(SlaveSocket, buffer, recv_count, MSG_NOSIGNAL);
+      Send(SlaveSocket, buffer, recv_count, MSG_NOSIGNAL);
       // MSG_OOB - предписывает отправить данные как срочные;
       // MSG_DONTROUTE - запрещает маршрутизацию пакетов. "Нижележащие"
       // транспортные слои могут проигнорировать этот флаг;
@@ -171,6 +173,42 @@ int Accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen) {
     exit(EXIT_FAILURE);
   }
   return res;
+}
+
+// чтобы работало на windows меняем ssize_t на int
+ssize_t Recv(int sockfd, void *buf, size_t len, int flags) {
+  // прототип recv(int sockfd, void *buf, int len, int flags);
+  // sockfd - сокет;
+  // buf - буфер для сообщения;
+  // len - длина сообщения;
+  // flags - флаги.
+  ssize_t res = recv(sockfd, buf, len, flags);
+
+  if (res == -1) {
+    perror("recv_err!");
+    exit(EXIT_FAILURE);
+  }
+
+  return res;
+}
+
+ssize_t Send(int sockfd, const void *buf, size_t len, int flags) {
+  // прототип send(int sockfd, const void *msg, int len, int flags);
+  // sockfd - сокет;
+  // msg - сообщение;
+  // len - длина сообщения;
+  // flags - флаги.
+  ssize_t res = send(sockfd, buf, len, flags);
+        // MSG_OOB - предписывает отправить данные как срочные;
+        // MSG_DONTROUTE - запрещает маршрутизацию пакетов. "Нижележащие"
+        // транспортные слои могут проигнорировать этот флаг;
+        // MSG_NOSIGNAL - если соединение закрыто, не генерировать сигнал SIG_PIPE;
+        // если флаги не используются - 0.
+
+  if (res == -1) {
+    perror("send_err!");
+    exit(EXIT_FAILURE);
+  }
 }
 
 void Shutdown(int sockfd, int how) {
