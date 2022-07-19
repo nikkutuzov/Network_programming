@@ -16,29 +16,11 @@ char message_2[] = "Bye Bye!\n";
 
 int Socket(int domain, int type, int protocol);
 void Connect(int sockfd, struct sockaddr *addr, socklen_t addrlen);
+ssize_t Send(int sockfd, const void *buf, size_t len, int flags);
 void Close(int fd);
 
 int main() {
   // создаем сокет:
-  // прототип int socket(int domain, int type, int protocol);
-  // domain:
-  //    Константа AF_INET - для Internet-домена (ip v.4);
-  //    Константа AF_INET6 - для Internet-домена (ip v.6);
-  //    Константа AF_UNIX - для передачи данных, используя файловую
-  //    систему ввода-вывода UNIX(исползуется для межпроцессного
-  //    взаимождействия на одном компьютере и не годятся для работы по сети).
-  // type:
-  //    SOCK_STREAM - для работы по протоколу TCP;
-  //    SOCK_DGRAM - для работы по протоколу UDP (датаграммы);
-  //    SOCK_RAW - для низкоуровневых("сырых") сокетов - IP, ICMP, etc.
-  // protocol:
-  //    0 - протокол по умолчанию, то есть для SOCK_STREAM - это будет TCP,
-  //    для SOCK_DGRAM - UDP, но можно исползовать и следующие константы:
-  //    IPPROTO_TCP и IPPROTO_UDP - то есть указать протокол явно.
-  //
-  // В качестве параметра сокет возвращает параметр типа int - дескриптор сокета:
-  //    положительное число - сам дескриптор;
-  //    -1 - ошибка.
   int Sock = Socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
   // структура адрес
@@ -87,7 +69,7 @@ int main() {
   // msg - сообщение;
   // len - длина сообщения;
   // flags - флаги.
-  send(Sock, message_2, sizeof message_2, MSG_NOSIGNAL);
+  Send(Sock, message_2, sizeof message_2, MSG_NOSIGNAL);
         // MSG_OOB - предписывает отправить данные как срочные;
         // MSG_DONTROUTE - запрещает маршрутизацию пакетов. "Нижележащие"
         // транспортные слои могут проигнорировать этот флаг;
@@ -101,6 +83,25 @@ int main() {
 }
 
 int Socket(int domain, int type, int protocol) {
+  // прототип int socket(int domain, int type, int protocol);
+  // domain:
+  //    Константа AF_INET - для Internet-домена (ip v.4);
+  //    Константа AF_INET6 - для Internet-домена (ip v.6);
+  //    Константа AF_UNIX - для передачи данных, используя файловую
+  //    систему ввода-вывода UNIX(исползуется для межпроцессного
+  //    взаимождействия на одном компьютере и не годятся для работы по сети).
+  // type:
+  //    SOCK_STREAM - для работы по протоколу TCP;
+  //    SOCK_DGRAM - для работы по протоколу UDP (датаграммы);
+  //    SOCK_RAW - для низкоуровневых("сырых") сокетов - IP, ICMP, etc.
+  // protocol:
+  //    0 - протокол по умолчанию, то есть для SOCK_STREAM - это будет TCP,
+  //    для SOCK_DGRAM - UDP, но можно исползовать и следующие константы:
+  //    IPPROTO_TCP и IPPROTO_UDP - то есть указать протокол явно.
+  //
+  // В качестве параметра сокет возвращает параметр типа int - дескриптор сокета:
+  //    положительное число - сам дескриптор;
+  //    -1 - ошибка.
   int res = socket(domain, type, protocol);
 
   if (res == -1) {
@@ -116,6 +117,25 @@ void Connect(int sockfd, struct sockaddr *addr, socklen_t addrlen) {
 
   if (res == -1) {
     perror("connect_err!");
+    exit(EXIT_FAILURE);
+  }
+}
+
+ssize_t Send(int sockfd, const void *buf, size_t len, int flags) {
+  // прототип send(int sockfd, const void *msg, int len, int flags);
+  // sockfd - сокет;
+  // msg - сообщение;
+  // len - длина сообщения;
+  // flags - флаги.
+  ssize_t res = send(sockfd, buf, len, flags);
+        // MSG_OOB - предписывает отправить данные как срочные;
+        // MSG_DONTROUTE - запрещает маршрутизацию пакетов. "Нижележащие"
+        // транспортные слои могут проигнорировать этот флаг;
+        // MSG_NOSIGNAL - если соединение закрыто, не генерировать сигнал SIG_PIPE;
+        // если флаги не используются - 0.
+
+  if (res == -1) {
+    perror("send_err!");
     exit(EXIT_FAILURE);
   }
 }

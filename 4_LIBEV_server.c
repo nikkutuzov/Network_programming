@@ -135,11 +135,13 @@
 #include <netinet/in.h>
 #include <ev.h>
 
-void read_cb(struct ev_loop *loop, struct ev_io *watcher, int revents);
-void accept_cb(struct ev_loop *loop, struct ev_io *watcher, int revents);
 int Socket(int domain, int type, int protocol);
 void Bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 void Listen(int sockfd, int backlog);
+ssize_t Send(int sockfd, const void *buf, size_t len, int flags);
+ssize_t Recv(int sockfd, void *buf, size_t len, int flags);
+void read_cb(struct ev_loop *loop, struct ev_io *watcher, int revents);
+void accept_cb(struct ev_loop *loop, struct ev_io *watcher, int revents);
 
 int main() {
   struct ev_loop *loop = ev_default_loop(0);
@@ -193,24 +195,53 @@ void Listen(int sockfd, int backlog) {
   }
 }
 
+// чтобы работало на windows меняем ssize_t на int
+ssize_t Recv(int sockfd, void *buf, size_t len, int flags) {
+  ssize_t res = recv(sockfd, buf, len, flags);
+
+  if (res == -1) {
+    perror("socket_err!");
+    exit(EXIT_FAILURE);
+  }
+
+  return res;
+}
+
+ssize_t Send(int sockfd, const void *buf, size_t len, int flags) {
+  // прототип send(int sockfd, const void *msg, int len, int flags);
+  // sockfd - сокет;
+  // msg - сообщение;
+  // len - длина сообщения;
+  // flags - флаги.
+  ssize_t res = send(sockfd, buf, len, flags);
+        // MSG_OOB - предписывает отправить данные как срочные;
+        // MSG_DONTROUTE - запрещает маршрутизацию пакетов. "Нижележащие"
+        // транспортные слои могут проигнорировать этот флаг;
+        // MSG_NOSIGNAL - если соединение закрыто, не генерировать сигнал SIG_PIPE;
+        // если флаги не используются - 0.
+
+  if (res == -1) {
+    perror("send_err!");
+    exit(EXIT_FAILURE);
+  }
+}
+
 void read_cb(struct ev_loop *loop, struct ev_io *watcher, int revents) {
   // создаем буфер
   char buffer[1024];
 
   // читаем
   // чтобы работало на windows меняем ssize_t на int
-  ssize_t read_count = recv(watcher->fd, buffer, 1024, MSG_NOSIGNAL);
+  ssize_t read_count = Recv(watcher->fd, buffer, 1024, MSG_NOSIGNAL);
                               // MSG_NOSIGNAL - если соединение закрыто,
                               // не генерировать сигнал SIG_PIPE
-  // обрабатываем ошибку
-  if (read_count < 0) { return; }
 
   if (read_count == 0) { // соединение закрылось
     ev_io_stop(loop, watcher); // останавливаем watcher
     free(watcher); // высвобождаем память
     return;
   } else { // иначе передаем
-    send(watcher->fd, buffer, read_count, MSG_NOSIGNAL);
+    Send(watcher->fd, buffer, read_count, MSG_NOSIGNAL);
   }
 }
 

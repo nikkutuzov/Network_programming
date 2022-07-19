@@ -40,34 +40,16 @@ int main() {
   // или новая ip = inet_pton(AF_INET, "10.0.0.1", &(address.sin_addr);
 
   // связываем сокет и адрес:
-  // прототип int bind(int sockfd, struct sockaddr *addr, int addrlen);
-  // sockfd - дескриптор сокета, который мы хотим привязать к заданному адресу;
-  // addr - указатель на структуру с адресом(см. выше);
-  // addrlen - размер этой структуры.
   Bind(MasterSocket, (struct sockaddr *) &SockAddr, sizeof SockAddr);
 
   // открываем слушающий TCP сокет
   Listen(MasterSocket, SOMAXCONN);  // длина очереди ожидания: 128 - для linux < 5.4
                                     //                       4096 - для linux >= 5.4
   while(1) {
-    // создаем и проверяем accept
-    // прототип int accept(int sockfd, void *addr, int *addrlen);
-    // sockfd - задаем слушающий сокет7 После вызова он остается в слушающем
-    // состоянии и может принимать другие соединения;
-    // addr - в структуру, на которую ссылается addr, записывается адрес сокета
-    // клиента, который установил соединение с сервером;
-    // addrlen - записывается размер структуры. Функция accept записывает туда
-    // длину, которая реально была использована;
-    //
-    // возвращаемое значение - новый(клиентский) сокет.
-
     // переменная, хранящая размер структуры SockAddr
     socklen_t addrlen = sizeof SockAddr;
+    // accept
     int SlaveSocket = Accept(MasterSocket, (struct sockaddr *) &SockAddr, &addrlen);
-      // SockAddr - ip-адрес и порт клиента;
-      // addrlen - размер этой структуры;
-      // если указать NULL, 0 - игнорируем
-      // информацию о клиенте.
 
     while(1) {
       char buffer[1024]; // создадим буфер
@@ -111,14 +93,7 @@ int main() {
       // если флаги не используются - 0.
     }
 
-    // прототип int shutdown(int sockfd, int how);
-    // sockfd - сокет;
-    // how - флаг.
     Shutdown(SlaveSocket, SHUT_RDWR); // разрываем соединение - запрещаем передачу
-                                      // данных, флаги:
-                                      // SHUT_RD или 0 - запрещаем чтение из сокета;
-                                      // SHUT_WR или 1 - запрещаем запись в сокет;
-                                      // SHUT_RDWR или 2 - запрещаем и то и другое.
     Close(SlaveSocket); // закрываем сокет
       // если закрыть сокет до разрыва соединения, то сокет закроется,
       // а соединение НЕ разорвется!
@@ -159,6 +134,10 @@ int res = socket(domain, type, protocol);
 }
 
 void Bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
+  // прототип int bind(int sockfd, struct sockaddr *addr, int addrlen);
+  // sockfd - дескриптор сокета, который мы хотим привязать к заданному адресу;
+  // addr - указатель на структуру с адресом(см. выше);
+  // addrlen - размер этой структуры.
   int res = bind(sockfd, addr, addrlen);
   if (res == -1) {
     perror("bind_err!");
@@ -175,6 +154,17 @@ void Listen(int sockfd, int backlog) {
 }
 
 int Accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen) {
+  // прототип int accept(int sockfd, void *addr, int *addrlen);
+  // sockfd - задаем слушающий сокет. После вызова он остается в слушающем
+  // состоянии и может принимать другие соединения;
+  // addr - в структуру, на которую ссылается addr, записывается адрес сокета
+  // клиента, который установил соединение с сервером;
+  // addrlen - записывается размер структуры. Функция accept записывает туда
+  // длину, которая реально была использована;
+  //
+  // возвращаемое значение - новый(клиентский) сокет.
+  // если указать NULL, 0 - игнорируем
+  // информацию о клиенте.
   int res = accept(sockfd, addr, addrlen);
   if (res == -1) {
     perror("accept_err!");
@@ -184,6 +174,13 @@ int Accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen) {
 }
 
 void Shutdown(int sockfd, int how) {
+  // прототип int shutdown(int sockfd, int how);
+  // sockfd - сокет;
+  // how - флаг.
+  // флаги:
+  // SHUT_RD или 0 - запрещаем чтение из сокета;
+  // SHUT_WR или 1 - запрещаем запись в сокет;
+  // SHUT_RDWR или 2 - запрещаем и то и другое.
   int res = shutdown(sockfd, how);
   if (res == -1) {
     perror("shutdown_err!");
