@@ -139,6 +139,7 @@
 int Socket(int domain, int type, int protocol);
 void Bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 void Listen(int sockfd, int backlog);
+int Accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
 void Send(int sockfd, const void *buf, size_t len, int flags);
 ssize_t Recv(int sockfd, void *buf, size_t len, int flags);
 void read_cb(struct ev_loop *loop, struct ev_io *watcher, int revents);
@@ -197,6 +198,16 @@ void Listen(int sockfd, int backlog) {
   }
 }
 
+int Accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen) {
+  int res = accept(sockfd, addr, addrlen);
+  if (res == -1) {
+    perror("accept_error!");
+    exit(EXIT_FAILURE);
+  }
+
+  return res;
+}
+
 // чтобы работало на windows меняем ssize_t на int
 ssize_t Recv(int sockfd, void *buf, size_t len, int flags) {
   ssize_t res = recv(sockfd, buf, len, flags);
@@ -249,7 +260,7 @@ void read_cb(struct ev_loop *loop, struct ev_io *watcher, int revents) {
 
 void accept_cb(struct ev_loop *loop, struct ev_io *watcher, int revents) {
   // принимаем соединение
-  int client_socket = accept(watcher->fd, NULL, 0);
+  int client_socket = Accept(watcher->fd, NULL, 0);
                                         // NULL - struct sockaddr *
                                         // то есть ip-адрес и порт клиента
                                         // 0 - размер этой структуры
