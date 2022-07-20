@@ -1,4 +1,4 @@
-all: build_TCP_server build_TCP_client build_UDP_sender build_UDP_receiver build_Epoll_server build_libev_server
+all: build_TCP_server build_TCP_client build_UDP_sender build_UDP_receiver build_Epoll_server build_libev_server build_POSIX_threads_server
 
 build_TCP_server:
 	gcc -o TCP_server 1_1_TCP_server.c
@@ -17,3 +17,6 @@ build_Epoll_server:
 
 build_libev_server:
 	gcc -o libev_server 4_LIBEV_server.c -lev
+
+build_POSIX_threads_server:
+	gcc -o POSIX_thr_server 5_POSIX_threads_rev_0.c -lev -pthread
